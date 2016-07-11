@@ -1,0 +1,10 @@
+## Interface: 40000
+## Title: Wipe Count
+## Notes: A simple wipe counter to show how Kappa your raid is.
+## Author: Koltaras
+## Version: 0.1
+## SavedVariables: WipeCountDB
+
+WipeCountEmbeds.xml
+
+WipeCountCore.lua
