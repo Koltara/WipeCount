@@ -1,13 +1,20 @@
-local WipeCount = LibStub("AceAddon-3.0"):NewAddon("WipeCount", "AceConsole-3.0", "AceEvent-3.0")
-local AceGUI = LibStub("AceGUI-3.0")
+WipeCount = LibStub("AceAddon-3.0"):NewAddon("WipeCount", "AceConsole-3.0", "AceEvent-3.0")
+AceGUI = LibStub("AceGUI-3.0")
 
-
-
-
-function WipeCount:MySlashProcessorFunc(input)
-	--Slash Function
-end
-
+local options = 
+	{
+		name = "WipeCount",
+		handler = WipeCount,
+		type = 'group',
+		args = {
+		},
+	}
+	
+local defaults = {
+    profile = {
+        message = "Wipe Count Defaults",
+    },
+}
 
 function WipeCount:EncounterEndHandler(eventName, encounterID, encounterName, difficultyID, raidSize, endStatus)
 
@@ -43,7 +50,7 @@ function WipeCount:EncounterEndHandler(eventName, encounterID, encounterName, di
 	]]--
 
 	if endStatus == 0 then
-		wipeCountValue++
+		wipeCountValue = wipeCountValue + 1
 	end
 
 end
@@ -77,7 +84,7 @@ function WipeCount:EncounterStartHandler(eventName, encounterID, encounterName, 
 	raidSize: Number of Raiders in the Instance
 	]]--
 
-	if currentEncounterID != encounterID
+	if currentEncounterID ~= encounterID then
 		curentEncounterID = encounterID
 		wipeCountValue = 0
 	end
@@ -113,6 +120,7 @@ function WipeCount:EncounterStartHandler(eventName, encounterID, encounterName, 
 		currentDifficulty = "Flex Normal"
 	elseif difficultyID == 15 then
 		currentDifficulty = "Flex Heroic"
+	end
 
 	encounterNameLabel:SetText("Encounter Name: " .. encounterName)
 	raidSizeLabel:SetText("Raid Size: " .. currentRaidSize)
@@ -134,71 +142,66 @@ function WipeCount:OnInitialize()
 	mainWindow = AceGUI:Create("Frame")
 	mainWindow:SetTitle("Wipe Count")
 	mainWindow:SetStatusText("Wipe Count Main Window")
-	encounterNameLabel:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
+	mainWindow:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
 	mainWindow:SetLayout("List")
 
 	encounterNameLabel = AceGUI:Create("Label")
-	encounterNameLabel:SetLabel("Encounter Name: ")
+	encounterNameLabel:SetText("Encounter Name: ")
 	encounterNameLabel:SetWidth(200)
+	encounterNameLabel:SetFont("FRIZQT__", 200, nil);
+	mainWindow:AddChild(encounterNameLabel)
 
 	raidSizeLabel = AceGUI:Create("Label")
-	raidSizeLabel:SetLabel("Raid Size: ")
+	raidSizeLabel:SetText("Raid Size: ")
 	raidSizeLabel:SetWidth(200)
+	
+	mainWindow:AddChild(raidSizeLabel)
 
 	difficultyLabel = AceGUI:Create("Label")
-	difficultyLabel:SetLabel("Raid Difficulty: ")
+	difficultyLabel:SetText("Raid Difficulty: ")
 	difficultyLabel:SetWidth(200)
+	mainWindow:AddChild(difficultyLabel)
 
 	wipeCountLabel = AceGUI:Create("Label")
-	wipeCountLabel:SetLabel("Wipe Count: 0")
+	wipeCountLabel:SetText("Wipe Count: 0")
 	wipeCountLabel:SetWidth(200)
+	mainWindow:AddChild(wipeCountLabel)
 
-
-	mainWindow:AddChild(encounterNameLabel)
-	mainWindow:AddChild(raidSizeLabel)
-	mainWindow.AddChild(difficultyLabel)
-	mainWindow.AddChild(wipeCountLabel)
-
-
-	WipeCount:RegisterChatCommand("myslash", "MySlashProcessorFunc")
+	WipeCount:Print("Window Generated...")
 
 	WipeCount:RegisterEvent("ENCOUNTER_END", "EncounterEndHandler")
 	WipeCount:RegisterEvent("ENCOUNTER_START", "EncounterStartHandler")
+	
+	WipeCount:Print("Events Registered...")
 
+	self.db = LibStub("AceDB-3.0"):New("WipeCountDB", defaults, true)
 
-	local options = {
-    name = "WipeCount",
-    handler = WipeCount,
-    type = 'group',
-    args = {
-        msg = {
-            type = 'input',
-            name = 'My Message',
-            desc = 'The message for my addon',
-            set = 'SetMyMessage',
-            get = 'GetMyMessage',
-        },
-    },
-}
+	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 
-
-
-	self.db = LibStub("AceDB-3.0"):New("WipeCountDB")
-
-	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(db)
+	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("WipeCount", "WipeCount")
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("WipeCount", options, {"myslash"})
+	self:RegisterChatCommand("wipecount", "ChatCommand")
+	self:RegisterChatCommand("wc", "ChatCommand")
 
 
 end
 
+function WipeCount:ChatCommand(input)
+	if not input or input:trim() == "" then
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+	else
+		LibStub("AceConfigCmd-3.0"):HandleCommand("wipecount", "WipeCount", input)
+	end
+end
+
 function WipeCount:OnEnable()
-	 mainWindow:SetDisabled(false)
+	-- mainWindow:SetDisabled(false)
 end
 
 function WipeCount:OnDisable()
 	-- Lots of Kappa
 	-- Never Disable
-	mainWindow:SetDisabled(true)
+	-- mainWindow:SetDisabled(true)
 end
 
